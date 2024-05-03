@@ -431,23 +431,6 @@ class TestTemplatedSDPA(InductorTestCase):
         self.run_test(causal_njt, dtype)
 
     @supported_platform
-    def test_backwards_fails(self):
-        make_tensor = functools.partial(
-            torch.randn,
-            (B, H, S, D),
-            dtype=torch.float32,
-            device="cuda",
-            requires_grad=True,
-        )
-        q, k, v = make_tensor(), make_tensor(), make_tensor()
-        func = torch.compile(_flex_attention, backend="inductor", fullgraph=True)
-        with self.assertRaisesRegex(
-            AssertionError, "flex_attention_backward is not an OpOverload"
-        ):
-            out = func(q, k, v, _identity)
-            out.backward(torch.ones_like(out))
-
-    @supported_platform
     def test_mixed_dtypes_fails(self):
         query = torch.randn((1, 1, 1024, 64), dtype=torch.float32, device="cuda")
         key = torch.randn((1, 1, 1024, 64), dtype=torch.float16, device="cuda")
