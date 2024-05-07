@@ -270,6 +270,9 @@ def _meta_tag(obj):
     if obj.device.type == 'meta':
         return 'meta'
 
+def _xpu_tag(obj):
+    if obj.device.type == 'xpu':
+        return 'xpu:' + str(obj.device.index)
 
 def _privateuse1_tag(obj):
     backend_name = torch._C._get_privateuse1_backend_name()
@@ -366,6 +369,7 @@ register_package(21, _mps_tag, _mps_deserialize)
 register_package(22, _meta_tag, _meta_deserialize)
 register_package(23, _privateuse1_tag, functools.partial(_deserialize, 'privateuse1'))
 register_package(24, _hpu_tag, functools.partial(_deserialize, 'hpu'))
+register_package(25, _xpu_tag, functools.partial(_deserialize, 'xpu'))
 
 def location_tag(storage: Union[Storage, torch.storage.TypedStorage, torch.UntypedStorage]):
     for _, tagger, _ in _package_registry:

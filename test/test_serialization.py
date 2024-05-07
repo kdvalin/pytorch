@@ -514,24 +514,33 @@ class SerializationMixin:
         gpu_last_map_locations = [
             f'cuda:{torch.cuda.device_count() - 1}',
         ]
+        xpu_0_map_locations = [
+            {'cuda:0': 'xpu:0'},
+            'xpu',
+            'xpu:0',
+            torch.device('xpu'),
+            torch.device('xpu', 0)
+        ]
 
-        def check_map_locations(map_locations, tensor_class, intended_device):
+        def check_map_locations(map_locations, dtype, intended_device):
             for fileobject_lambda in fileobject_lambdas:
                 for map_location in map_locations:
                     tensor = torch.load(fileobject_lambda(), map_location=map_location)
 
                     self.assertEqual(tensor.device, intended_device)
-                    self.assertIsInstance(tensor, tensor_class)
-                    self.assertEqual(tensor, tensor_class([[1.0, 2.0], [3.0, 4.0]]))
+                    self.assertEqual(tensor.dtype, dtype)
+                    self.assertEqual(tensor, torch.tensor([[1.0, 2.0], [3.0, 4.0]], dtype=dtype, device=intended_device))
 
-        check_map_locations(cpu_map_locations, torch.FloatTensor, torch.device('cpu'))
+        check_map_locations(cpu_map_locations, torch.float, torch.device('cpu'))
         if torch.cuda.is_available():
-            check_map_locations(gpu_0_map_locations, torch.cuda.FloatTensor, torch.device('cuda', 0))
+            check_map_locations(gpu_0_map_locations, torch.float, torch.device('cuda', 0))
             check_map_locations(
                 gpu_last_map_locations,
-                torch.cuda.FloatTensor,
+                torch.float,
                 torch.device('cuda', torch.cuda.device_count() - 1)
             )
+        if torch.xpu.is_available():
+            check_map_locations(xpu_0_map_locations, torch.float, torch.device('xpu', 0))
 
     @unittest.skipIf(torch.cuda.is_available(), "Testing torch.load on CPU-only machine")
     def test_load_nonexistent_device(self):
