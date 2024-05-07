@@ -1,4 +1,5 @@
 import difflib
+import functools
 import os
 import io
 import shutil
@@ -284,66 +285,6 @@ def _cpu_deserialize(obj, location):
         return obj
 
 
-def validate_cuda_device(location):
-    device = torch.cuda._utils._get_device_index(location, True)
-
-    if not torch.cuda.is_available():
-        raise RuntimeError('Attempting to deserialize object on a CUDA '
-                           'device but torch.cuda.is_available() is False. '
-                           'If you are running on a CPU-only machine, '
-                           'please use torch.load with map_location=torch.device(\'cpu\') '
-                           'to map your storages to the CPU.')
-    device_count = torch.cuda.device_count()
-    if device >= device_count:
-        raise RuntimeError('Attempting to deserialize object on CUDA device '
-                           f'{device} but torch.cuda.device_count() is {device_count}. Please use '
-                           'torch.load with map_location to map your storages '
-                           'to an existing device.')
-    return device
-
-
-def _cuda_deserialize(obj, location):
-    if location.startswith('cuda'):
-        device = validate_cuda_device(location)
-        if getattr(obj, "_torch_load_uninitialized", False):
-            with torch.cuda.device(device):
-                return torch.UntypedStorage(obj.nbytes(), device=torch.device(location))
-        else:
-            return obj.cuda(device)
-
-
-def validate_hpu_device(location):
-    hpu = getattr(torch, "hpu", None)
-    assert hpu is not None, "HPU device module is not loaded"
-    device = hpu._utils._get_device_index(location, optional=True)
-
-    if not hpu.is_available():
-        raise RuntimeError('Attempting to deserialize object on a HPU '
-                           'device but torch.hpu.is_available() is False. '
-                           'If you are running on a CPU-only machine, '
-                           'please use torch.load with map_location=torch.device(\'cpu\') '
-                           'to map your storages to the CPU.')
-    device_count = hpu.device_count()
-    if device >= device_count:
-        raise RuntimeError('Attempting to deserialize object on HPU device '
-                           f'{device} but torch.hpu.device_count() is {device_count}. Please use '
-                           'torch.load with map_location to map your storages '
-                           'to an existing device.')
-    return device
-
-
-def _hpu_deserialize(obj, location):
-    if location.startswith('hpu'):
-        hpu = getattr(torch, "hpu", None)
-        assert hpu is not None, "HPU device module is not loaded"
-        device = validate_hpu_device(location)
-        if getattr(obj, "_torch_load_uninitialized", False):
-            with hpu.device(device):
-                return torch.UntypedStorage(obj.nbytes(), device=torch.device(location))
-        else:
-            return obj.hpu(device)
-
-
 def _mps_deserialize(obj, location):
     if location.startswith('mps'):
         return obj.mps()
@@ -354,13 +295,13 @@ def _meta_deserialize(obj, location):
         return torch.UntypedStorage(obj.nbytes(), device='meta')
 
 
-def _validate_privateuse1_device(location, backend_name):
+def _validate_device(location, backend_name):
     '''
-    Check whether the device index of privateuse1 is valid
+    Check whether the device index of specified backend is valid
 
-    Register a device_module of privateuse1 by torch._register_device_module.
-    Implement the following methods in device_module like cuda:
-    device_module._utils._get_device_index(location, True),
+    In case of privateuse1 backend, first register a device_module of
+    privateuse1 by torch._register_device_module. Implement the following
+    methods in device_module like cuda: device_module._utils._get_device_index(location, True),
     device_module.device_count().
 
     Args:
@@ -397,8 +338,17 @@ def _validate_privateuse1_device(location, backend_name):
     return device_index
 
 
-def _privateuse1_deserialize(obj, location):
-    backend_name = torch._C._get_privateuse1_backend_name()
+def validate_cuda_device(location):
+    return _validate_device(location, 'cuda')
+
+
+def validate_hpu_device(location):
+    return _validate_device(location, 'hpu')
+
+
+def _deserialize(backend_name, obj, location):
+    if backend_name == 'privateuse1':
+        backend_name = torch._C._get_privateuse1_backend_name()
     if location.startswith(backend_name):
         if not hasattr(obj, backend_name):
             raise RuntimeError(f'Attempting to load the storages to the {backend_name.upper()} device '
@@ -406,17 +356,16 @@ def _privateuse1_deserialize(obj, location):
                                f'torch.storage.TypedStorage.{backend_name}() is not generated. '
                                'Please use torch.utils.generate_methods_for_privateuse1_backend '
                                f'to generate storage.{backend_name}() method first.')
-        device_index = _validate_privateuse1_device(location, backend_name)
+        device_index = _validate_device(location, backend_name)
         return getattr(obj, backend_name)(device_index)
 
 
 register_package(10, _cpu_tag, _cpu_deserialize)
-register_package(20, _cuda_tag, _cuda_deserialize)
+register_package(20, _cuda_tag, functools.partial(_deserialize, 'cuda'))
 register_package(21, _mps_tag, _mps_deserialize)
 register_package(22, _meta_tag, _meta_deserialize)
-register_package(23, _privateuse1_tag, _privateuse1_deserialize)
-register_package(24, _hpu_tag, _hpu_deserialize)
-
+register_package(23, _privateuse1_tag, functools.partial(_deserialize, 'privateuse1'))
+register_package(24, _hpu_tag, functools.partial(_deserialize, 'hpu'))
 
 def location_tag(storage: Union[Storage, torch.storage.TypedStorage, torch.UntypedStorage]):
     for _, tagger, _ in _package_registry:
