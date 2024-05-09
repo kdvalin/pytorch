@@ -138,7 +138,7 @@ REGISTER_CUDA_OPERATOR(ScaleBlobs, ScaleBlobsOp<CUDAContext>);
         }
       }
     }
-    C10_CUDA_CHECK(cudaMalloc(&dStartCoorArr, sizeof(int) * coorArrSize));
+    C10_CUDA_CHECK(cudaMallocManaged(&dStartCoorArr, sizeof(int) * coorArrSize));
     C10_CUDA_CHECK(cudaMemcpy(dStartCoorArr, startCoorArr, sizeof(int) * coorArrSize,
       cudaMemcpyHostToDevice));
 

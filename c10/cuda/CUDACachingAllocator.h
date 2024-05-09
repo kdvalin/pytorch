@@ -63,7 +63,7 @@ typedef std::array<Stat, static_cast<size_t>(StatType::NUM_TYPES)> StatArray;
 struct DeviceStats {
   // COUNT: allocations requested by client code
   StatArray allocation;
-  // COUNT: number of allocated segments from cudaMalloc().
+  // COUNT: number of allocated segments from cudaMallocManaged().
   StatArray segment;
   // COUNT: number of active memory blocks (allocated or used by stream)
   StatArray active;

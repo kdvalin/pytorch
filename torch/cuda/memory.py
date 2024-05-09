@@ -173,7 +173,7 @@ def memory_stats(device: Union[Device, int] = None) -> Dict[str, Any]:
     - ``"allocated_bytes.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
       amount of allocated memory.
     - ``"segment.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
-      number of reserved segments from ``cudaMalloc()``.
+      number of reserved segments from ``cudaMallocManaged()``.
     - ``"reserved_bytes.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
       amount of reserved memory.
     - ``"active.{all,large_pool,small_pool}.{current,peak,allocated,freed}"``:
@@ -218,7 +218,7 @@ def memory_stats(device: Union[Device, int] = None) -> Dict[str, Any]:
     - ``"oversize_allocations.{current,peak,allocated,freed}"``:
       number of over-size allocation requests received by the memory allocator.
     - ``"oversize_segments.{current,peak,allocated,freed}"``:
-      number of over-size reserved segments from ``cudaMalloc()``.
+      number of over-size reserved segments from ``cudaMallocManaged()``.
 
     The caching allocator can be configured via ENV to round memory allocations in order
     to reduce fragmentation. Sometimes the overhead from rounding can be higher than
