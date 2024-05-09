@@ -786,7 +786,7 @@ cudaError_t cudaMallocMaybeCapturing(void** p, size_t size) {
   if (at::cuda::currentStreamCaptureStatusMayInitCtx() ==
       at::cuda::CaptureStatus::None) {
 #endif
-    return C10_CUDA_ERROR_HANDLED(cudaMalloc(p, size));
+    return C10_CUDA_ERROR_HANDLED(cudaMallocManaged(p, size));
 #if !defined(USE_ROCM) || ROCM_VERSION >= 50300
   } else {
     // It's ok to capture cudaMallocs, as long as we never cudaFree those
@@ -794,7 +794,7 @@ cudaError_t cudaMallocMaybeCapturing(void** p, size_t size) {
     // Capturing cudaMalloc behaves nicely: it gives the graph new VA,
     // but is ignored (won't leakily allocate new memory) in replays.
     at::cuda::CUDAStreamCaptureModeGuard g{cudaStreamCaptureModeRelaxed};
-    return C10_CUDA_ERROR_HANDLED(cudaMalloc(p, size));
+    return C10_CUDA_ERROR_HANDLED(cudaMallocManaged(p, size));
   }
 #endif
 }
@@ -3114,7 +3114,7 @@ class NativeCachingAllocator : public CUDAAllocator {
 
       // Deliberately don't use cudaMallocMaybeCapturing here, to force an error
       // if someone tries to use forceUncachedAllocator while capturing.
-      C10_CUDA_CHECK(cudaMalloc(&devPtr, size));
+      C10_CUDA_CHECK(cudaMallocManaged(&devPtr, size));
       const c10::impl::PyInterpreter* interp = c10::impl::GPUTrace::get_trace();
       if (C10_UNLIKELY(interp)) {
         (*interp)->trace_gpu_memory_allocation(

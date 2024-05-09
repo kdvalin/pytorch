@@ -471,7 +471,7 @@ bool isIntraNodeCommSupported() {
 
 void* initP2pState() {
   void* state = nullptr;
-  AT_CUDA_CHECK(cudaMalloc(&state, sizeof(P2pState)));
+  AT_CUDA_CHECK(cudaMallocManaged(&state, sizeof(P2pState)));
   AT_CUDA_CHECK(cudaMemset(state, 0, sizeof(P2pState)));
   return state;
 }
@@ -484,7 +484,7 @@ void* initTopoInfo(Topology topology, NvlMesh nvlMesh, size_t rank) {
   auto hcm = getHybridCubeMesh(nvlMesh);
   int hcmInfo[4];
   std::copy((*hcm)[rank].begin(), (*hcm)[rank].begin() + 4, hcmInfo);
-  AT_CUDA_CHECK(cudaMalloc(&topoInfo, sizeof(hcmInfo)));
+  AT_CUDA_CHECK(cudaMallocManaged(&topoInfo, sizeof(hcmInfo)));
   AT_CUDA_CHECK(
       cudaMemcpy(topoInfo, hcmInfo, sizeof(hcmInfo), cudaMemcpyHostToDevice));
   return topoInfo;

@@ -556,7 +556,7 @@ traces all the memory operations.
    extern "C" {
    void* my_malloc(ssize_t size, int device, cudaStream_t stream) {
       void *ptr;
-      cudaMalloc(&ptr, size);
+      cudaMallocManaged(&ptr, size);
       std::cout<<"alloc "<<ptr<<size<<std::endl;
       return ptr;
    }

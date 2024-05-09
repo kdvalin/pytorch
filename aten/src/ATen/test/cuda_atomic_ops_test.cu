@@ -61,8 +61,8 @@ void test_atomic_add() {
     answer[i] = factor;
   }
 
-  cudaMalloc((void**)&ad, arraysize * sizeof(T));
-  cudaMalloc((void**)&sumd, arraysize * sizeof(T));
+  cudaMallocManaged((void**)&ad, arraysize * sizeof(T));
+  cudaMallocManaged((void**)&sumd, arraysize * sizeof(T));
 
   cudaMemcpy(ad, a.data(), arraysize * sizeof(T), cudaMemcpyHostToDevice);
   cudaMemcpy(sumd, sum.data(), arraysize * sizeof(T), cudaMemcpyHostToDevice);
@@ -97,8 +97,8 @@ void test_atomic_mul() {
     answer[i] = pow(sum[i], static_cast<T>(factor + 1));
   }
 
-  cudaMalloc((void**)&ad, arraysize * sizeof(T));
-  cudaMalloc((void**)&sumd, arraysize * sizeof(T));
+  cudaMallocManaged((void**)&ad, arraysize * sizeof(T));
+  cudaMallocManaged((void**)&sumd, arraysize * sizeof(T));
 
   cudaMemcpy(ad, a.data(), arraysize * sizeof(T), cudaMemcpyHostToDevice);
   cudaMemcpy(sumd, sum.data(), arraysize * sizeof(T), cudaMemcpyHostToDevice);
@@ -137,8 +137,8 @@ void test_atomic_max() {
     }
   }
 
-  cudaMalloc((void**)&ad, arraysize * factor * sizeof(T));
-  cudaMalloc((void**)&sumd, arraysize * sizeof(T));
+  cudaMallocManaged((void**)&ad, arraysize * factor * sizeof(T));
+  cudaMallocManaged((void**)&sumd, arraysize * sizeof(T));
 
   cudaMemcpy(ad, a.data(), arraysize * factor * sizeof(T), cudaMemcpyHostToDevice);
   cudaMemcpy(sumd, sum.data(), arraysize * sizeof(T), cudaMemcpyHostToDevice);
@@ -177,8 +177,8 @@ void test_atomic_min() {
     }
   }
 
-  cudaMalloc((void**)&ad, arraysize * factor * sizeof(T));
-  cudaMalloc((void**)&sumd, arraysize * sizeof(T));
+  cudaMallocManaged((void**)&ad, arraysize * factor * sizeof(T));
+  cudaMallocManaged((void**)&sumd, arraysize * sizeof(T));
 
   cudaMemcpy(ad, a.data(), arraysize * factor * sizeof(T), cudaMemcpyHostToDevice);
   cudaMemcpy(sumd, sum.data(), arraysize * sizeof(T), cudaMemcpyHostToDevice);

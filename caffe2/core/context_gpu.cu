@@ -526,7 +526,7 @@ struct DefaultCUDAAllocator final : public at::Allocator {
     switch (g_cuda_memory_pool_type) {
       case CudaMemoryPoolType::NONE:
         if (nbytes != 0) {
-          CUDA_ENFORCE(cudaMalloc(&ptr, nbytes));
+          CUDA_ENFORCE(cudaMallocManaged(&ptr, nbytes));
         }
         if (FLAGS_caffe2_gpu_memory_tracking) {
           g_size_map[ptr] = nbytes;

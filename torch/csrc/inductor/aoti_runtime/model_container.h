@@ -436,7 +436,7 @@ class AOTInductorModelContainer {
       return constant_blob_.get();
     } else {
       if (!constant_blob_secondary_) {
-        constant_blob_secondary_ = RAII_cudaMalloc(blob_size_);
+        constant_blob_secondary_ = RAII_cudaMallocManaged(blob_size_);
       }
       return constant_blob_secondary_.get();
     }

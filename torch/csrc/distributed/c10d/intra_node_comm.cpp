@@ -355,7 +355,7 @@ c10::intrusive_ptr<IntraNodeComm> IntraNodeComm::rendezvous(
 
   // Allocate buffer
   void* buffer = nullptr;
-  AT_CUDA_CHECK(cudaMalloc(&buffer, bufferSize));
+  AT_CUDA_CHECK(cudaMallocManaged(&buffer, bufferSize));
 
   // Second handshake: exchange topology and CUDA IPC handles
   struct IpcInfo {
@@ -407,7 +407,7 @@ c10::intrusive_ptr<IntraNodeComm> IntraNodeComm::rendezvous(
     }
   }
   void* p2pStatesDev = nullptr;
-  AT_CUDA_CHECK(cudaMalloc(&p2pStatesDev, sizeof(p2pStates)));
+  AT_CUDA_CHECK(cudaMallocManaged(&p2pStatesDev, sizeof(p2pStates)));
   AT_CUDA_CHECK(cudaMemcpy(
       p2pStatesDev,
       p2pStates.data(),
@@ -415,7 +415,7 @@ c10::intrusive_ptr<IntraNodeComm> IntraNodeComm::rendezvous(
       cudaMemcpyHostToDevice));
 
   void* buffersDev = nullptr;
-  AT_CUDA_CHECK(cudaMalloc(&buffersDev, sizeof(buffers)));
+  AT_CUDA_CHECK(cudaMallocManaged(&buffersDev, sizeof(buffers)));
   AT_CUDA_CHECK(cudaMemcpy(
       buffersDev, buffers.data(), sizeof(buffers), cudaMemcpyHostToDevice));
 
