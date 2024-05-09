@@ -1,5 +1,5 @@
-DOCKER_REGISTRY          ?= docker.io
-DOCKER_ORG               ?= $(shell docker info 2>/dev/null | sed '/Username:/!d;s/.* //')
+DOCKER_REGISTRY          ?= quay.io
+DOCKER_ORG               ?= kvalin
 DOCKER_IMAGE             ?= pytorch
 DOCKER_FULL_NAME          = $(DOCKER_REGISTRY)/$(DOCKER_ORG)/$(DOCKER_IMAGE)
 
@@ -34,6 +34,7 @@ BUILD_ARGS                = --build-arg BASE_IMAGE=$(BASE_IMAGE) \
 							--build-arg PYTORCH_VERSION=$(PYTORCH_VERSION) \
 							--build-arg INSTALL_CHANNEL=$(INSTALL_CHANNEL) \
 							--build-arg TRITON_VERSION=$(TRITON_VERSION) \
+							--build-arg TARGETPLATFORM="linux/$(shell arch | sed -e 's/aarch64/arm64/g')" \
 							--build-arg CMAKE_VARS="$(CMAKE_VARS)"
 EXTRA_DOCKER_BUILD_FLAGS ?=
 
@@ -57,7 +58,7 @@ endif
 endif
 
 DOCKER_BUILD              = DOCKER_BUILDKIT=1 \
-							docker $(BUILD) \
+							podman $(BUILD) \
 								--progress=$(BUILD_PROGRESS) \
 								$(EXTRA_DOCKER_BUILD_FLAGS) \
 								$(PLATFORMS_FLAG) \
@@ -74,6 +75,13 @@ all: devel-image
 devel-image: BASE_IMAGE := $(BASE_DEVEL)
 devel-image: DOCKER_TAG := $(PYTORCH_VERSION)-cuda$(CUDA_VERSION_SHORT)-cudnn$(CUDNN_VERSION)-devel
 devel-image:
+	$(DOCKER_BUILD)
+
+.PHONY: ubi
+ubi: BASE_IMAGE := nvidia/cuda:$(CUDA_VERSION)-cudnn$(CUDNN_VERSION)-devel-ubi8
+ubi: DOCKER_TAG := $(PYTORCH_VERSION)-cuda$(CUDA_VERSION_SHORT)-cudnn$(CUDNN_VERSION)-devel-ubi
+ubi: BUILD_ARGS := $(BUILD_ARGS) --build-arg UBI_VERSION=8 -f Dockerfile.ubi
+ubi:
 	$(DOCKER_BUILD)
 
 .PHONY: devel-push
