@@ -76,6 +76,12 @@ devel-image: DOCKER_TAG := $(PYTORCH_VERSION)-cuda$(CUDA_VERSION_SHORT)-cudnn$(C
 devel-image:
 	$(DOCKER_BUILD)
 
+.PHONY: ubi
+ubi: BASE_IMAGE := nvidia/cuda:$(CUDA_VERSION)-cudnn$(CUDNN_VERSION)-devel-ubi9
+ubi: DOCKER_TAG := $(PYTORCH_VERSION)-cuda$(CUDA_VERSION_SHORT)-cudnn$(CUDNN_VERSION)-devel-ubi
+ubi:
+	$(DOCKER_BUILD)
+
 .PHONY: devel-push
 devel-push: BASE_IMAGE := $(BASE_DEVEL)
 devel-push: DOCKER_TAG := $(PYTORCH_VERSION)-cuda$(CUDA_VERSION_SHORT)-cudnn$(CUDNN_VERSION)-devel
