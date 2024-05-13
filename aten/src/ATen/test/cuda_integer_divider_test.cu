@@ -64,10 +64,10 @@ class IntDividerTester {
   IntDividerTester() {
     cudaError_t err;
 
-    err = cudaMalloc(&dividersBuf_, NUM_CASES * sizeof(IntDivider<Value>));
+    err = cudaMallocManaged(&dividersBuf_, NUM_CASES * sizeof(IntDivider<Value>));
     bool isEQ = err == cudaSuccess;
     EXPECT_TRUE(isEQ);
-    err = cudaMalloc(&testCasesBuf_, NUM_CASES * sizeof(TestCase<Value>));
+    err = cudaMallocManaged(&testCasesBuf_, NUM_CASES * sizeof(TestCase<Value>));
     isEQ = err == cudaSuccess;
     EXPECT_TRUE(isEQ);
   }

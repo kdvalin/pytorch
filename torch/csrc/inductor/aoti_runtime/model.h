@@ -49,9 +49,9 @@ namespace {
 
 using CUDAPtr = std::unique_ptr<void, std::function<void(void*)>>;
 
-CUDAPtr RAII_cudaMalloc(size_t num_bytes) {
+CUDAPtr RAII_cudaMallocManaged(size_t num_bytes) {
   void* data_ptr;
-  AOTI_RUNTIME_DEVICE_CHECK(cudaMalloc((void**)&data_ptr, num_bytes));
+  AOTI_RUNTIME_DEVICE_CHECK(cudaMallocManaged((void**)&data_ptr, num_bytes));
   auto deleter = [](void* ptr) { AOTI_RUNTIME_DEVICE_CHECK(cudaFree(ptr)); };
   return CUDAPtr(data_ptr, deleter);
 }
@@ -319,7 +319,7 @@ class AOTInductorModelBase {
       constants_internal_offset[i] = max_blob;
       max_blob += data_size;
     }
-    constant_blob_ = RAII_cudaMalloc(max_blob);
+    constant_blob_ = RAII_cudaMallocManaged(max_blob);
 #endif // USE_CUDA
   }
 
